@@ -1,7 +1,6 @@
 import os
 import csv
 import requests
-import argparse
 from datetime import datetime
 
 USER_FILE = "twitter_usernames.txt"
@@ -37,26 +36,13 @@ def build_url(tweet_id):
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--count", type=int, default=5)
-    args = parser.parse_args()
-
-    if not BEARER_TOKEN:
-        print("Missing env X_BEARER_TOKEN")
-        return
-
-    if not os.path.exists(USER_FILE):
-        print(f"{USER_FILE} not found")
-        return
-
+    count = int(os.environ.get("LIKE_COUNT", 5))
     usernames = [u.strip() for u in open(USER_FILE) if u.strip()]
-    if not usernames:
-        print("No usernames listed")
-        return
 
     out_exists = os.path.exists(OUTPUT_FILE)
     with open(OUTPUT_FILE, "a", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
+
         if not out_exists:
             writer.writerow(["timestamp", "liked_by", "tweet_url", "tweet_created_at"])
 
@@ -65,11 +51,7 @@ def main():
             if not user:
                 continue
 
-            likes = get_liked(user["id"], args.count)
-            if not likes:
-                print(f"[OK] {uname}: none returned")
-                continue
-
+            likes = get_liked(user["id"], count)
             for t in likes:
                 writer.writerow([
                     datetime.utcnow().isoformat(),
@@ -78,9 +60,6 @@ def main():
                     t.get("created_at", "")
                 ])
 
-            print(f"[OK] {uname}: saved {len(likes)}")
-
 
 if __name__ == "__main__":
     main()
-
