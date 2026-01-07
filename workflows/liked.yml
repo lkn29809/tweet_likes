@@ -20,7 +20,7 @@ jobs:
       - name: Run script
         env:
           X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
-          LIKE_COUNT: "5"     # change inside YAML if needed
+          LIKE_COUNT: "1"     # change inside YAML if needed
         run: python liked.py
 
       - name: Commit CSV back
