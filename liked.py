@@ -18,21 +18,17 @@ auth = OAuth1(API_KEY, API_SECRET, ACCESS_TOKEN, ACCESS_SECRET)
 def get_user(username):
     url = f"https://api.twitter.com/2/users/by/username/{username}"
     r = requests.get(url, auth=auth)
-    print(f"[USER] {username}: {r.status_code}")
-    print(r.text)
     if r.status_code != 200:
         return None
     return r.json().get("data")
 
 
-def get_liked(user_id, max_results, uname):
+def get_liked(user_id, max_results):
     url = (
         f"https://api.twitter.com/2/users/{user_id}/liked_tweets"
         f"?max_results={max_results}&tweet.fields=created_at"
     )
     r = requests.get(url, auth=auth)
-    print(f"[LIKES] {uname}: {r.status_code}")
-    print(r.text)
     if r.status_code != 200:
         return []
     return r.json().get("data", [])
@@ -56,12 +52,9 @@ def main():
         for uname in usernames:
             user = get_user(uname)
             if not user:
-                print(f"[SKIP] Failed to fetch user {uname}")
                 continue
 
-            likes = get_liked(user["id"], count, uname)
-            print(f"[COUNT] {uname} liked returned: {len(likes)}")
-
+            likes = get_liked(user["id"], count)
             for t in likes:
                 writer.writerow([
                     datetime.utcnow().isoformat(),
