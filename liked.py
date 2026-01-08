@@ -18,20 +18,22 @@ auth = OAuth1(API_KEY, API_SECRET, ACCESS_TOKEN, ACCESS_SECRET)
 def get_user(username):
     url = f"https://api.twitter.com/2/users/by/username/{username}"
     r = requests.get(url, auth=auth)
+    print(f"[USER] {username}: {r.status_code}")
+    print(r.text)
     if r.status_code != 200:
-        print(f"[ERR user] {username}: {r.text}")
         return None
     return r.json().get("data")
 
 
-def get_liked(user_id, max_results):
+def get_liked(user_id, max_results, uname):
     url = (
         f"https://api.twitter.com/2/users/{user_id}/liked_tweets"
         f"?max_results={max_results}&tweet.fields=created_at"
     )
     r = requests.get(url, auth=auth)
+    print(f"[LIKES] {uname}: {r.status_code}")
+    print(r.text)
     if r.status_code != 200:
-        print(f"[ERR likes] {r.status_code}: {r.text}")
         return []
     return r.json().get("data", [])
 
@@ -41,7 +43,7 @@ def build_url(tweet_id):
 
 
 def main():
-    count = int(os.environ.get("LIKE_COUNT", 1))
+    count = int(os.environ.get("LIKE_COUNT", 10))
     usernames = [u.strip() for u in open(USER_FILE) if u.strip()]
 
     out_exists = os.path.exists(OUTPUT_FILE)
@@ -54,9 +56,12 @@ def main():
         for uname in usernames:
             user = get_user(uname)
             if not user:
+                print(f"[SKIP] Failed to fetch user {uname}")
                 continue
 
-            likes = get_liked(user["id"], count)
+            likes = get_liked(user["id"], count, uname)
+            print(f"[COUNT] {uname} liked returned: {len(likes)}")
+
             for t in likes:
                 writer.writerow([
                     datetime.utcnow().isoformat(),
