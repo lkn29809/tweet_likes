@@ -2,19 +2,24 @@ import os
 import csv
 import requests
 from datetime import datetime
+from requests_oauthlib import OAuth1
 
 USER_FILE = "twitter_usernames.txt"
 OUTPUT_FILE = "liked_tweets.csv"
 
-BEARER_TOKEN = os.environ.get("X_BEARER_TOKEN")
-HEADERS = {"Authorization": f"Bearer {BEARER_TOKEN}"}
+API_KEY = os.environ.get("X_API_KEY")
+API_SECRET = os.environ.get("X_API_SECRET")
+ACCESS_TOKEN = os.environ.get("X_ACCESS_TOKEN")
+ACCESS_SECRET = os.environ.get("X_ACCESS_SECRET")
+
+auth = OAuth1(API_KEY, API_SECRET, ACCESS_TOKEN, ACCESS_SECRET)
 
 
 def get_user(username):
     url = f"https://api.twitter.com/2/users/by/username/{username}"
-    r = requests.get(url, headers=HEADERS)
+    r = requests.get(url, auth=auth)
     if r.status_code != 200:
-        print(f"[ERR] {username}: {r.text}")
+        print(f"[ERR user] {username}: {r.text}")
         return None
     return r.json().get("data")
 
@@ -24,9 +29,9 @@ def get_liked(user_id, max_results):
         f"https://api.twitter.com/2/users/{user_id}/liked_tweets"
         f"?max_results={max_results}&tweet.fields=created_at"
     )
-    r = requests.get(url, headers=HEADERS)
+    r = requests.get(url, auth=auth)
     if r.status_code != 200:
-        print(f"[ERR] likes: {r.text}")
+        print(f"[ERR likes] {r.status_code}: {r.text}")
         return []
     return r.json().get("data", [])
 
@@ -36,7 +41,7 @@ def build_url(tweet_id):
 
 
 def main():
-    count = int(os.environ.get("LIKE_COUNT", 5))
+    count = int(os.environ.get("LIKE_COUNT", 1))
     usernames = [u.strip() for u in open(USER_FILE) if u.strip()]
 
     out_exists = os.path.exists(OUTPUT_FILE)
