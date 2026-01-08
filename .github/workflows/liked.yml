@@ -1,7 +1,10 @@
-name: Fetch Liked Tweets
+name: Fetch Liked Tweets (OAuth1 test)
+
+permissions:
+  contents: write
 
 on:
-  workflow_dispatch:    # manual run
+  workflow_dispatch:
 
 jobs:
   run-script:
@@ -14,19 +17,22 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install requests
-        run: pip install requests
+      - name: Install requirements
+        run: pip install requests requests-oauthlib
 
       - name: Run script
         env:
-          X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
-          LIKE_COUNT: "1"     # change inside YAML if needed
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+          LIKE_COUNT: "1"
         run: python liked.py
 
-      - name: Commit CSV back
+      - name: Commit CSV
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add liked_tweets.csv || echo "No CSV?"
-          git commit -m "Update liked tweets" || echo "No changes"
+          git add liked_tweets.csv || echo "No changes"
+          git commit -m "Update liked tweets" || echo "Nothing to commit"
           git push
