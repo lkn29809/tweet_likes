@@ -1,4 +1,4 @@
-name: Fetch Liked Tweets (OAuth1 test)
+name: Fetch Liked Tweets
 
 permissions:
   contents: write
@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install requirements
+      - name: Install dependencies
         run: pip install requests requests-oauthlib
 
       - name: Run script
@@ -26,7 +26,7 @@ jobs:
           X_API_SECRET: ${{ secrets.X_API_SECRET }}
           X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
           X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
-          LIKE_COUNT: "5"
+          LIKE_COUNT: "10"
         run: python liked.py
 
       - name: Commit CSV
